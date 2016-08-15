@@ -1,0 +1,102 @@
+{% extends 'adminuser/person_page.html' %}
+{% block person_home_content %}
+    <style type="text/css">
+table.gridtable {
+	font-family: verdana,arial,sans-serif;
+	font-size:11px;
+	color:#333333;
+	border-width: 1px;
+	border-color: #666666;
+	border-collapse: collapse;
+}
+table.gridtable th {
+	border-width: 1px;
+	padding: 10px;
+	border-style: solid;
+	border-color: #666666;
+	background-color: #dedede;
+}
+table.gridtable td {
+	border-width: 1px;
+	padding: 8px;
+	border-style: solid;
+	border-color: #666666;
+	background-color: #ffffff;
+}
+</style>
+        <h1 class="page-header"><small>工程管理</small></h1>
+<a href="/admin_select_project?method=status&value=1">已完成</a> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<a href="/admin_select_project?method=status&value=0">未完成</a>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+    <select id="select_method">
+  <option value="order_id">项目编号</option>
+  <option value="username">会员账号</option>
+</select>
+    <input id="select_value" > </input>
+    <button onclick="javascript:selectProject()">搜索</button>
+    <br> </br>
+     <table class="gridtable" cellpadding="0" cellspacing="0" >
+                    <thead>
+                    <tr>
+                        <th>项目编号</th>
+                        <th>会员账号</th>
+                        <th>项目名</th>
+                        <th>项目类别</th>
+                        <th>创建时间</th>
+                        <th>完成状态</th>
+                        <th>操作</th>
+                    </tr>
+                    {% for foo in project %}
+                    <tr>
+                        <td>{{foo.Order_ID}}</td>
+                        <td>{{foo.user.username}}</td>
+                        <td>{{foo.name}}</td>
+                        <td>{{foo.classify}}</td>
+                        <td>{{foo.create_time|date:"Y-m-d H:i:s" }}</td>
+
+                        </td>
+
+                        <td>{% if foo.status %}
+                            已完成
+                            {% else %}
+                            未完成
+                        {% endif %}</td>
+
+                        <td>
+                            <a href="javascript:deleteProject({{foo.Order_ID}})">删除</a>
+                            <a href="javascript:handleProject({{foo.Order_ID}})">查看</a>
+                            {% if foo.status %}
+                            <a href="javascript:cancle_complete({{ foo.Order_ID }})" >取消完成</a>
+
+                            {% endif %}
+                        </td>
+
+                    </tr>
+                    {% endfor %}
+                    </thead>
+     </table>
+<br> </br>
+       <script>
+       function cancle_complete(order_id) {
+           location.href = "/cancle_complete?order_id="+order_id;
+       }
+         function change_peoject(order_id) {
+             location.href = "/change_project/?oder_id="+order_id;
+      }
+
+    function deleteProject(orderId) {
+        if (confirm("您确定要删除么，记录删除后将无法找回")) {
+            location.href = "/delete_project?method=deleteProject&orderId=" + orderId + "";
+        }
+    }
+         function selectProject() {
+            var method = $("#select_method").val();
+            var value = $("#select_value").val();
+            location.href = "/admin_select_project?method=" + method + "&value=" + value + "";
+        }
+    function handleProject(order_id) {
+            location.href = "/handle_project?order_id=" + order_id ;
+        }
+    function createProject() {
+            location.href = "/create_project";
+    }
+</script>
+{% endblock %}
