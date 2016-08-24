@@ -12,8 +12,8 @@
           </div>
         {% endfor %}
       {% endif %}
-{# 删掉了action="petson" 以防链接生成的时候的错误 #}
-            <form role="form" class="ProfileForm "  method="post" role="form">
+
+            <form role="form" class="ProfileForm " action="person" method="post" role="form">
                   {% csrf_token %}
                 <fieldset>
                     {% for field in form.visible_fields %}

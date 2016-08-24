@@ -1,39 +1,21 @@
 #-*- coding: UTF-8 -*-
 from django.shortcuts import render,redirect
+from webuser.models import Project,UploadFile,Webuser,Pay,UploadFile
 from webuser.forms import LoginForm,RegisterForm,ProfileForm,ProjectForm,ChangePasswordForm
 from django.contrib.auth.models import User
+from django.utils import timezone
 from django.contrib.auth import authenticate, login
 from django.contrib import auth,messages
-from webuser.models import Webuser,Project,Pay,UploadFile
-from django.utils import timezone
 import time
-from django.shortcuts import render
-from django.views.decorators.csrf import csrf_protect,csrf_exempt
 from django.http import HttpResponse,HttpResponseRedirect,JsonResponse
-import json
-import os
+from django.views.decorators.csrf import csrf_protect,csrf_exempt
+import os,json
 from django.conf import settings
-import uuid
-from .forms import AdminChangePassword,ChangePayForm
-# Create your views here.
+from django.http import StreamingHttpResponse
 
-# Create your views here.
+from adminuser.forms import AdminChangePassword,ChangePayForm
 
-@csrf_exempt
-def admin_project_complete(request): # 管理员处理完图片后手动点击‘完成项目’的后台功能，让当前项目状态转为已完成
-    if not request.user.is_authenticated():
-        return redirect('/weblogin')
-    if not request.user.is_superuser:
-        return redirect('/weblogin')
-    OrderId=request.GET['order_id']
-    project = Project.objects.get(Order_ID=OrderId)
-    project.status=True
-    project.save()
-    projects = Project.objects.all()
-    return render(request, 'adminuser/project_manage.html', {'project': projects})
-
-@csrf_exempt
-def admin_project(request):  # 显示所有项目
+def admin_project(request): #管理员用户的工程管理。可以看到所有用户的工程
     if not request.user.is_authenticated():
         return redirect('/weblogin')
     if not request.user.is_superuser:
@@ -41,10 +23,13 @@ def admin_project(request):  # 显示所有项目
     project = Project.objects.all().order_by('create_time')
     return render(request, 'adminuser/project_manage.html', {'project': project})
 
-@csrf_exempt
-def admin_select_project(request): #从网页传来两个参数，method代表搜索的字段，value代表用以搜索的关键字
-    method = request.GET['method']
-    value = request.GET['value']
+def admin_select_project(request): #筛选工工程的功能
+    if not request.user.is_authenticated():
+        return redirect('/weblogin')
+    if not request.user.is_superuser:
+        return redirect('/weblogin')
+    method = request.GET['method'] #筛选方式是 订单号 或者用户名 或者是订单状态
+    value = request.GET['value'] #筛选得值
 
     if method == 'status':
         project = Project.objects.filter(status=value)
@@ -53,26 +38,39 @@ def admin_select_project(request): #从网页传来两个参数，method代表�
         project = Project.objects.filter(Order_ID=value)
         return render(request, 'adminuser/project_manage.html', {'project': project})
     elif method == 'username':
-        user = User.objects.get(username=value)
-        project = Project.objects.filter(user=user)
+        try:
+            user = User.objects.get(username=value)
+        except:
+            user = None
+        try:
+            project = Project.objects.filter(user=user)
+        except:
+            project = None
         return render(request, 'adminuser/project_manage.html', {'project': project})
 
-@csrf_exempt
-def handle_project(request):    # 管理员处理项目相关的文件，上传与完成按钮均在‘adminuser/project_handle.html’里面
-    print request.GET['order_id']
-    order_id = request.GET['order_id']
-
+def handle_project(request): #点击工程列表的查看之后 显示的工程文件  和 工程的备注
+    if not request.user.is_authenticated():
+        return redirect('/weblogin')
+    if not request.user.is_superuser:
+        return redirect('/weblogin')
+    order_id = request.GET.get('order_id')
     file = UploadFile.objects.filter(Order_ID_id=order_id)
-    project = Project.objects.get(Order_ID=order_id)
-    return render(request, 'adminuser/project_handle.html', {'file': file,'project':project,'order_id':order_id})
+    try:
+        project = Project.objects.get(Order_ID=order_id)
+    except:
+        return HttpResponse("该用户不存在")
+    return render(request, 'adminuser/project_handle.html', {'file': file,'project':project})
 
 @csrf_exempt
-def admin_uploadify_script(request):  # uploadify的下载功能接口，这是管理员版本，用以判断是否成功传递项目编号和文件
-    order_id = request.GET['order_id']
+def admin_uploadify_script(request): #处理管理员上传的函数
+    if not request.user.is_authenticated():
+        return redirect('/weblogin')
+    if not request.user.is_superuser:
+        return redirect('/weblogin')
     ret = "0"
     file = request.FILES.get("Filedata", None)
     if file:
-        result, path_name = admin_profile_upload(file,request,order_id)
+        result, path_name = admin_profile_upload(file,request)
         if result:
             ret = "1"
         else:
@@ -84,17 +82,32 @@ def admin_uploadify_script(request):  # uploadify的下载功能接口，这是�
         return HttpResponse(json.dumps(jsons, ensure_ascii=False))
 
 @csrf_exempt
-
-# 管理员上传的文件还没有录入数据库的步骤
-def admin_profile_upload(file,request,order_id):  # 管理员版本的文件上传功能本体，根据所传的项目编号找到相关用户，并将文件上传
-                                                    # 到用户文件夹的指定项目目录下
+def admin_profile_upload(file,request):
+    if not request.user.is_authenticated():
+        return redirect('/weblogin')
+    if not request.user.is_superuser:
+        return redirect('/weblogin')
+    order_id = request.GET['order_id']
+    project = Project.objects.get(Order_ID=order_id)
     if file:
-        project = Project.objects.get(Order_ID=order_id)
-        path = os.path.join(settings.BASE_DIR, 'upload')+'\\'+str(project.user.username)+'\\'+project.Order_ID
+        path = os.path.join(settings.BASE_DIR, 'upload')+'\\'+str(project.user.username)+'\\'+str(order_id)
         if not os.path.exists(path):
             os.makedirs(path)
         # file_name=str(uuid.uuid1())+".jpg"
-        file_name = str()+'-' + file.name
+        file_name = file.name
+        type = request.GET['stlType']
+        if type == '1':
+            file_name = '1.stl'   #肝实质
+        if type == '2':
+            file_name = '2.stl'
+        if type == '3':
+            file_name = '3.stl'
+        if type == '4':
+            file_name = '4.stl'
+        if type == '5':
+            file_name = '5.stl'
+        if type == '6':
+            file_name = '6.stl'
         # fname = os.path.join(settings.MEDIA_ROOT,filename)
         path_file = os.path.join(path, file_name)
         fp = open(path_file, 'wb')
@@ -104,8 +117,41 @@ def admin_profile_upload(file,request,order_id):  # 管理员版本的文件上�
         return (True, path_file)  # change
     return (False, 'failed')  # change
 
-@csrf_exempt
-def super_profile(request):               # 管理员个人资料修改和查看，修改成功时返回到管理员个人资料页面
+def complete_project(request): #点击完成项目，将项目状态写入数据库
+    if not request.user.is_authenticated():
+        return redirect('/weblogin')
+    if not request.user.is_superuser:
+        return redirect('/weblogin')
+    order_id = request.GET['order_id']
+    project = Project.objects.get(Order_ID=order_id)
+    project.status = True
+    project.save()
+
+    pro = Project.objects.all().order_by('create_time')
+    return render(request, 'adminuser/project_manage.html', {'project': pro})
+
+def cancel_complete_project(request): #取消项目的完成状态
+    if not request.user.is_authenticated():
+        return redirect('/weblogin')
+    if not request.user.is_superuser:
+        return redirect('/weblogin')
+    order_id = request.GET['order_id']
+    project = Project.objects.get(Order_ID=order_id)
+    project.status = False
+    project.save()
+
+    pro = Project.objects.all().order_by('create_time')
+    return render(request, 'adminuser/project_manage.html', {'project': pro})
+
+def users(request): #管理员显示所有用户信息
+    if not request.user.is_authenticated():
+        return redirect('/weblogin')
+    if not request.user.is_superuser:
+        return redirect('/person')
+    Users = Webuser.objects.all()
+    return render(request, 'adminuser/person_manage.html', {'Users': Users})
+
+def super_profile(request): #管理员个人信息页面
     if not request.user.is_authenticated():
         return redirect('/weblogin')
     if not request.user.is_superuser:
@@ -136,16 +182,7 @@ def super_profile(request):               # 管理员个人资料修改和查看
         return render(request, 'adminuser/person_page_info.html', {'form': form})
 
 @csrf_exempt
-def users(request):                 # 显示所有注册的用户
-    if not request.user.is_authenticated():
-        return redirect('/weblogin')
-    if not request.user.is_superuser:
-        return redirect('/person')
-    Users = Webuser.objects.all()
-    return render(request, 'adminuser/person_manage.html', {'Users': Users})
-
-@csrf_exempt
-def change_user(request):        # 根据唯一的用户编号修改编号对应的用户资料，修改成功时返回用户管理页面
+def change_user(request): #修改个人公户信息
     Id = request.GET['user_id']
     if not request.user.is_authenticated():
         print 'not log in'
@@ -175,13 +212,11 @@ def change_user(request):        # 根据唯一的用户编号修改编号对应
             webuser.department = form.cleaned_data.get('department')
             webuser.abstract = form.cleaned_data.get('abstract')
             webuser.save()
-            webusers = Webuser.objects.all()
-            return render(request, 'adminuser/person_manage.html', {'Users': webusers})
-        else:
-            return render(request, 'adminuser/person_change.html', {'form': form, 'show_id': Id})
+        Users = Webuser.objects.all()
+        return render(request, 'adminuser/person_manage.html', {'Users': Users})
 
 @csrf_exempt
-def delete_user(request):            # 管理员删除用户编号指定的用户，成功时返回到用户管理页面
+def delete_user(request):  #删除选中用户
     if not request.user.is_authenticated():
         return redirect('/weblogin')
     if not request.user.is_superuser:
@@ -194,7 +229,7 @@ def delete_user(request):            # 管理员删除用户编号指定的用�
     Users = Webuser.objects.all()
     return render(request, 'adminuser/person_manage.html', {'Users': Users})
 
-def pay(request):               # 展示所有交易信息
+def admin_pay(request): #管理支付信息
     if not request.user.is_authenticated():
         return redirect('/weblogin')
     if not request.user.is_superuser:
@@ -204,7 +239,7 @@ def pay(request):               # 展示所有交易信息
 
 # 新增管理员修改用户密码功能
 @csrf_exempt
-def Super_Change_Passwords(request):  #管理员修改用户的密码，修改成功时返回到用户管理页面
+def Super_Change_Passwords(request):
     if not request.user.is_authenticated():
         return redirect('/weblogin')
     if not request.user.is_superuser:
@@ -222,8 +257,8 @@ def Super_Change_Passwords(request):  #管理员修改用户的密码，修改�
                 thisUser = User.objects.get(id=user_id)
                 thisUser.set_password(newpassword)
                 thisUser.save()
-                Users = Webuser.objects.all()
-                return render(request, 'adminuser/person_manage.html', {'Users': Users})
+                messages.add_message(request, messages.SUCCESS, u'用户密码修改成功!!')
+                return render(request, 'adminuser/change_password.html', {'form': form,'userid':user_id})
         else:
             return render(request, 'adminuser/change_password.html', {'form': form,'userid':user_id})
     else:
@@ -231,18 +266,13 @@ def Super_Change_Passwords(request):  #管理员修改用户的密码，修改�
         return render(request, 'adminuser/change_password.html', {'form': form,'userid':user_id})
 
 @csrf_exempt
-def Super_Change_pay(request):  # 管理员直接对交易信息进行修改
+def Super_Change_pay(request): #修改订单状态
     Id = request.GET['Order_id']
     if not request.user.is_authenticated():
         return redirect('/weblogin')
     if not request.user.is_superuser:
         return redirect('/')
-    if request.method == "GET":
-        thisPay = Pay.objects.get(project_id=Id)
-        form = ChangePayForm(initial={'pay_status': thisPay.is_pay,
-                                      'price': thisPay.price})
-        return render(request, 'adminuser/pay_change.html', {'form': form, 'Order_id': Id})
-    else:
+    if request.method == "POST":
         form = ChangePayForm(request.POST)
         if form.is_valid():
             pay_status = form.cleaned_data['pay_status']
@@ -250,10 +280,10 @@ def Super_Change_pay(request):  # 管理员直接对交易信息进行修改
             thisPay = Pay.objects.get(project_id=Id)
             if thisPay:
                 thisPay.price = price
-                if pay_status == 'False':
-                    thisPay.is_pay = False
-                if pay_status == 'True':
+                if (pay_status == 'True'):
                     thisPay.is_pay = True
+                else:
+                    thisPay.is_pay = False
                 thisPay.save()
                 pay = Pay.objects.all()
                 return render(request, 'adminuser/pay_manage.html', {'pay': pay})
@@ -262,10 +292,14 @@ def Super_Change_pay(request):  # 管理员直接对交易信息进行修改
                 return render(request, 'adminuser/pay_change.html', {'form': form, 'Order_id': Id})
         else:
             return render(request, 'adminuser/pay_change.html', {'form': form, 'Order_id': Id})
-
+    else:
+        thisPay = Pay.objects.get(project_id=Id)
+        form = ChangePayForm(initial={'pay_status':thisPay.is_pay,
+                                      'price':thisPay.price})
+        return render(request,'adminuser/pay_change.html',{'form':form,'Order_id':Id})
 
 @csrf_exempt
-def deal_delete(request):              # 管理员删除一条交易信息
+def deal_delete(request): #删除订单
     if not request.user.is_authenticated():
         return redirect('/weblogin')
     if not request.user.is_superuser:
@@ -278,14 +312,22 @@ def deal_delete(request):              # 管理员删除一条交易信息
     deals = Pay.objects.all()
     return render(request, 'adminuser/pay_manage.html', {'pay': deals})
 
-def cancle_complete(request):        # 管理员将显示已完成的项目重新设置成未完成，以便于对项目的更正
-    if not request.user.is_authenticated():
-        return redirect('/weblogin')
-    if not request.user.is_superuser:
-        return redirect('/')
-    OrderId = request.GET['order_id']
-    project = Project.objects.get(Order_ID=OrderId)
-    project.status = False
-    project.save()
-    projects = Project.objects.all()
-    return render(request, 'adminuser/project_manage.html', {'project': projects})
+# def file_download(request):
+#     file_name = request.GET["directory"]
+#     the_file_name = file_name
+#     def file_iterator(file_name, chunk_size=262144):
+#         f = open(file_name,"rb")
+#         while True:
+#             c = f.read(chunk_size)
+#             if c:
+#                 yield c
+#             else:
+#                 break
+#     response = StreamingHttpResponse(file_iterator(the_file_name))
+#     file_name = file_name.encode("utf-8")
+#     response['Content-Type'] = 'application/octet-stream'
+#     response['Content-Disposition'] = 'attachment;filename=%s' % file_name
+#     return response
+
+
+

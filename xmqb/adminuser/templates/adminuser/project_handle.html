@@ -1,4 +1,5 @@
 {% extends 'adminuser/person_page.html' %}
+{% block title %}工程处理{% endblock %}
 {% block person_home_content %}
     <style type="text/css">
 table.gridtable {
@@ -24,9 +25,9 @@ table.gridtable td {
 	background-color: #ffffff;
 }
 </style>
-    <input value="{{ order_id }}" style="display: none" id="order_id"/>
         <h1 class="page-header"><small>工程查看</small></h1>
      <table class="gridtable" cellpadding="0" cellspacing="0" >
+ <input style="display: none" id="order_id" value={{ project.Order_ID }} > </input>
                     <thead>
                     <tr>
                         <th>文件名</th>
@@ -38,7 +39,7 @@ table.gridtable td {
                         <td>{{foo.directory}}</td>
                         <td>{{foo.upload_time|date:"Y-m-d H:i:s" }}</td>
                         <td>
-                            <a href="/download/{{ project.user.username}}/{{ foo.directory}}"  download="sdkfsnnei">下载</a>
+                            <a href="/download/{{ project.user.username}}/{{ foo.directory}}"  download={{ foo.directory}}>下载</a>
                         </td>
 
                     </tr>
@@ -50,28 +51,59 @@ table.gridtable td {
     {{ project.remark }}
 <br> </br>
     <br> </br>
-       <div class="demo-box">
-{#   下面input标签中的id和a标签中的$('#')都需要同步，否则base中开出的第二套uploadify设置用不起来， #}
-{#     一个是选择框，一个是上传指令      #}
-    <input id="file_upload_admin" type="file" name="Filedata">
+
+    <label>肝实质：</label>
+    <div class="demo-box">
+    <input id="file_upload2" type="file" name="Filedata">
     <div id="file_uploadQueue" class="uploadifyQueue"></div>
-     <a href="javascript:$('#file_upload_admin').uploadify('upload','*')">上传</a>
+     <a href="javascript:$('#file_upload2').uploadify('upload','*')">上传</a>
+    <p><span id="id_span_msg"></span></p>
+            </div>
+    <label>动脉：</label>
+    <div class="demo-box">
+    <input id="file_upload3" type="file" name="Filedata">
+    <div id="file_uploadQueue" class="uploadifyQueue"></div>
+     <a href="javascript:$('#file_upload3').uploadify('upload','*')">上传</a>
+    <p><span id="id_span_msg"></span></p>
+            </div>
+    <label>静脉：</label>
+    <div class="demo-box">
+    <input id="file_upload4" type="file" name="Filedata">
+    <div id="file_uploadQueue" class="uploadifyQueue"></div>
+     <a href="javascript:$('#file_upload4').uploadify('upload','*')">上传</a>
+    <p><span id="id_span_msg"></span></p>
+            </div>
+    <label>门脉：</label>
+    <div class="demo-box">
+    <input id="file_upload5" type="file" name="Filedata">
+    <div id="file_uploadQueue" class="uploadifyQueue"></div>
+     <a href="javascript:$('#file_upload5').uploadify('upload','*')">上传</a>
+    <p><span id="id_span_msg"></span></p>
+            </div>
+    <label>肿瘤：</label>
+    <div class="demo-box">
+    <input id="file_upload6" type="file" name="Filedata">
+    <div id="file_uploadQueue" class="uploadifyQueue"></div>
+     <a href="javascript:$('#file_upload6').uploadify('upload','*')">上传</a>
+    <p><span id="id_span_msg"></span></p>
+            </div>
+    <label>下腔：</label>
+    <div class="demo-box">
+    <input id="file_upload7" type="file" name="Filedata">
+    <div id="file_uploadQueue" class="uploadifyQueue"></div>
+     <a href="javascript:$('#file_upload7').uploadify('upload','*')">上传</a>
     <p><span id="id_span_msg"></span></p>
             </div>
 
     <div class="form-group">
             <div  class="form-group-left">
-
+              <button type="submit" class="btn btn-large btn-primary" onclick="javascript:complete_project({{ project.Order_ID }})">完成项目</button>
               </div>
           </div>
-   <button  class="btn btn-large btn-primary" onclick="javasctipt:complete({{ order_id }})">完成项目</button>
        <script>
-         function download(directory) {
-             alert(directory);
-             location.href = +directory;
+       function complete_project(order_id) {
+             location.href = "/complete_project?order_id="+order_id;
       }
-       function complete(Order_id) {
-           location.href = "/admin_project_complete?order_id="+Order_id;
-       }
+
 </script>
 {% endblock %}

@@ -1,5 +1,5 @@
 {% extends 'adminuser/person_page.html' %}
-{% block title %}管理员页面{% endblock %}
+{% block title %}个人资料{% endblock %}
 {% block person_home_content %}
     <div class="col-md-6 container">
         <h1 class="page-header"><small>管理员资料</small></h1>
@@ -13,7 +13,7 @@
         {% endfor %}
       {% endif %}
 
-            <form role="form" class="ProfileForm "  method="post" role="form">
+            <form role="form" class="ProfileForm " action="person" method="post" role="form">
                   {% csrf_token %}
                 <fieldset>
                     {% for field in form.visible_fields %}
@@ -39,6 +39,5 @@
              </form>
         <button class="btn btn-large btn-primary" onclick="javascript:change_passwords()">修改密码</button>
         </div>
-
 
 {% endblock %}

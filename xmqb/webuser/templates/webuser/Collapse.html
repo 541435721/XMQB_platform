@@ -1,0 +1,124 @@
+{% extends "base.html"%}
+{% block dropdowns %}
+
+    <div class="profile navbar-right">
+                <ul class="nav navbar-nav">
+                        {% if request.user.is_authenticated %}
+                        <li class="dropdown">
+                            <a href="" class="dropdown-toggle" data-toggle="dropdown">{{request.user}}<span class="caret"></span> </a>
+                            <ul class="dropdown-menu">
+                                <li><a href="/person/" class="glyphicon glyphicon-user">个人资料</a> </li>
+                                <li><a href="/admin_project/" class="glyphicon glyphicon-edit">工程管理</a> </li>
+                                <li><a href="/user_manage/" class="glyphicon glyphicon-edit">用户管理</a> </li>
+                                <li><a href="/super_pay_manage/" class="glyphicon glyphicon-th">订单管理</a> </li>
+                                <li><a href="/logout/" class="glyphicon glyphicon-off">退出登录</a> </li>
+                            </ul>
+                        </li>
+                        {% else %}
+                         <li><a href="weblogin" >登录</a></li>
+                        <li><a href="register">注册</a></li>
+                        {% endif %}
+                    </ul>
+            </div>
+
+{% endblock %}
+
+{% block page_content %}
+    <!--主题内容-->
+        <div id="mainbody">
+        <div class="container">
+            <div class="row">
+            <div class="col-md-3">
+                <div class="sidebar">
+               <body>
+<div id="accordion">
+  <h3 onclick="javascript:show_select('1','Bisque')">肝实质</h3>
+  <div>
+    <a href="/static/1.stl">
+        下载
+    </a>
+      <br> </br>
+    <p id="dis1">
+    </p>
+  </div>
+
+  <h3 onclick="javascript:show_select('2','Red')">动脉</h3>
+  <div>
+     <a href="/static/2.stl">
+        下载
+    </a>
+      <br> </br>
+    <p id="dis2">
+    </p>
+  </div>
+
+  <h3 onclick="javascript:show_select('3','Chocolate')">静脉</h3>
+  <div>
+   <a href="/static/3.stl">
+        下载
+    </a>
+      <br> </br>
+    <p id="dis3">
+    </p>
+  </div>
+
+  <h3 onclick="javascript:show_select('4','DarkSlateBlue')">门脉</h3>
+  <div>
+     <a href="/static/4.stl">
+        下载
+    </a>
+      <br> </br>
+    <p id="dis4">
+    </p>
+  </div>
+
+      <h3 onclick="javascript:show_select('5','Feldspar')">肿瘤</h3>
+  <div>
+     <a href="/static/5.stl">
+        下载
+    </a>
+      <br> </br>
+    <p id="dis5">
+    </p>
+  </div>
+
+      <h3 onclick="javascript:show_select('6','HotPink')">下腔</h3>
+  <div>
+     <a href="/static/6.stl">
+        下载
+    </a>
+      <br> </br>
+    <p id="dis6">
+    </p>
+  </div>
+</div>
+
+
+</body>
+                </div>
+            </div>
+
+                <!--显示左边菜单点击后的内容-->
+                <div class="col-md-9">
+                    <div class="container">
+                    {%block show_stl%}
+                        <!--显示个人主页中间主要内容-->
+                        <!--end-->
+                    {%endblock%}
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+            </div>
+    <!--主题内容结束-->
+<script>
+function show_select(type,color) {
+    var selectedObject = scene.getObjectByName('actor');
+    scene.remove(selectedObject);
+    init("/static/"+ type +".stl",color);
+}
+</script>
+
+{% endblock%}

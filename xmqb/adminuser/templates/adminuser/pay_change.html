@@ -1,5 +1,5 @@
 {% extends 'adminuser/person_page.html' %}
-{% block title %}管理员资料页面{% endblock %}
+{% block title %}订单修改页面{% endblock %}
 {% block person_home_content %}
     <div class="col-md-6 container">
         <h1 class="page-header"><small>修改交易信息</small></h1>
@@ -25,7 +25,7 @@
             <span class="help-block">{{ field.help_text|safe }}</span>
           {% endif %}
           {% for error in field.errors %}
-            <label class="control-label">{{ error }}</label>
+            <label class="control-label">{{ error }}</label>{# 显示错误 #}
           {% endfor %}
         </div>
       {% endfor %}

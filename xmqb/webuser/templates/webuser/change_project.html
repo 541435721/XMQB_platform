@@ -1,5 +1,5 @@
 {% extends 'webuser/person_page.html' %}
-{% block title %}个人主页个人资料页面{% endblock %}
+{% block title %}工程修改{% endblock %}
 {% block person_home_content %}
     <div class="col-md-6 container">
         <h1 class="page-header"><small>修改项目</small></h1>
@@ -23,6 +23,7 @@
         {% if field.name == 'Oder_id' %}
             <div style="display: none;" >{{ field }}</div>
         {% elif field.name == 'dir'%}
+{#            {{ field }}#}
           <div style="display: none;" >{{ field }}</div>
             <div class="demo-box">
     <input id="file_upload" type="file" name="Filedata">
@@ -41,18 +42,6 @@
           {% endfor %}
         </div>
       {% endfor %}
-        {% for field in form.visible_fields %}
-                {% for error in field.errors %}
-                    <script>
-                 $("#id_dir").val("");
-                    //这里的for循环就需要很注意，form表单展示出来的时候就是for循环，所以在for循环没循环到指定位置的时候，
-                    //对这个指定位置所做的操作是无效的，比如这里，想要触发清空dir字段的操作，必须要在上面的for循环结束之后
-                    //再做，因为就算是在for循环里dir字段之前的字段发生错误触发这个清空操作，dir字段的id是找不到的，因为它还没有
-                    //被展示在网页里，所以只有在所有的filed展示出来，即以代码的形式通过for循环展示到网页中之后，定位dir字段id的
-                    //的操作才会绝对有效
-              </script>
-                {% endfor %}
-                {% endfor %}
 
                 </fieldset>
 

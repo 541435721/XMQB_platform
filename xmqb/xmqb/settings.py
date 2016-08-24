@@ -98,7 +98,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'xmqb',
         'USER': 'root',
-        'PASSWORD': 'xmqb123456',
+        'PASSWORD': '121230016',
         'HOST': '',
         'PORT': '3306',
 
@@ -132,11 +132,12 @@ LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'Asia/Shanghai'
 
+USE_TZ = False
+
 USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
@@ -144,9 +145,7 @@ USE_TZ = True
 
 STATIC_URL= '/static/'
 
-DOWNLOAD_DIR = os.path.join(BASE_DIR,'upload')
+DOWNLOAD_DIR = 'D:/work/xmqb/upload'
 
 STATICFILES_DIRS = (
     os.path.join(os.path.dirname(__file__), '../static/').replace('\\', '/'),)
-
-

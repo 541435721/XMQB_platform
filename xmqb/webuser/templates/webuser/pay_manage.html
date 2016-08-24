@@ -1,5 +1,5 @@
 {% extends 'webuser/person_page.html' %}
-{% block title %}个人主页个人资料页面{% endblock %}
+{% block title %}支付管理{% endblock %}
 {% block person_home_content %}
     <style type="text/css">
 table.gridtable {
@@ -38,12 +38,14 @@ table.gridtable td {
                     </tr>
                     {% for foo in pay %}
                     <tr>
+                        {% if foo.project.status %}
                         <td>{{foo.project.Order_ID}}</td>
                         <td>{{foo.project.name}}</td>
                         <td>{{foo.price}}</td>
                         <td>{% if foo.is_pay %}已支付 {% else %}未支付{% endif %}</td>
                         <td>{% if not foo.is_pay %}<a href="">支付</a>{% else %}<a href="">查看</a>{% endif %}</td>
                     </tr>
+                        {% endif %}
                     {% endfor %}
                     </thead>
      </table>

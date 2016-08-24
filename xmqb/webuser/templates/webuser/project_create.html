@@ -1,5 +1,5 @@
 {% extends 'webuser/person_page.html' %}
-{% block title %}个人主页个人资料页面{% endblock %}
+{% block title %}项目管理页面{% endblock %}
 {% block person_home_content %}
     <div class="col-md-6 container">
         <h1 class="page-header"><small>创建项目</small></h1>
@@ -13,7 +13,7 @@
         {% endfor %}
       {% endif %}
 
-            <form role="form" class="ProjectForm " method="post" role="form">
+            <form role="form" class="ProjectForm " action="create_project" method="post" role="form">
                   {% csrf_token %}
                 <fieldset>
                     {% for field in form.visible_fields %}

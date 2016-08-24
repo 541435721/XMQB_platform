@@ -1,4 +1,5 @@
 {% extends 'adminuser/person_page.html' %}
+{% block title %}用户管理{% endblock %}
 {% block person_home_content %}
     <style type="text/css">
 table.gridtable {
@@ -31,7 +32,7 @@ table.gridtable td {
                     <tr>
                         <th>用户id</th>
                         <th>用户名</th>
-                        <th>用户姓名</th>
+                        <th>姓名</th>
                         <th>联系方式</th>
                         <th>医院</th>
                         <th>职位</th>
@@ -42,7 +43,7 @@ table.gridtable td {
                         <tr>
                         <td>{{ people.user_id }}</td>
                         <td>{{ people.user.username }}</td>
-                        <td>{{ people.name }}</td>
+                         <td>{{ people.name }}</td>
                         <td>{{ people.telephone }}</td>
                         <td>{{ people.hospital }}</td>
                         <td>{{ people.position }}</td>

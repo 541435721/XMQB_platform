@@ -33,8 +33,8 @@ class Project(models.Model):
 class UploadFile(models.Model):
     user = models.ForeignKey(User)
     Order_ID =  models.ForeignKey(Project)
-    directory = models.CharField(primary_key=True,max_length=100, null=False, blank=False)
     upload_time = models.DateTimeField(auto_now_add=True)
+    directory = models.CharField(primary_key=True,max_length=100, null=False, blank=False)
     def __unicode__(self):
         return self.user.username
 

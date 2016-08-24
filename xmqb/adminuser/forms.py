@@ -16,6 +16,6 @@ class AdminChangePassword(forms.Form):
                                max_length=300, required=True, error_messages={'required': u'请再次输入新密码'})
 
 class ChangePayForm(forms.Form):
-    position_choice = ((u'False', u'未支付'), (u'True', u'已支付'))
+    position_choice = (('False', u'未支付'), ('True', u'已支付'))
     pay_status = forms.ChoiceField(label=u'支付状态', required=False, choices=position_choice)
     price = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}),label=u'价格',required=False,max_length=10)
